@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String baseUrl = "http: api.themovie.org/3";
-  static const String apiKey = '';
+  static const String apiKey = 'cd8eabfaf58df48043f4f96d8a696877';
   
   Future<List<Map<String, dynamic>>> getAllMovies() async {
     final response = await http.get(Uri.parse('$baseUrl/movie/now_playing?api_key=$apiKey'));
