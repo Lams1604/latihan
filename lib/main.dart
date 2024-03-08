@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pilem/screens/detail_screen.dart';
 import 'package:pilem/screens/home_screen.dart';
 
 void main() {
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.greenAccent),
         useMaterial3: true,
       ),
-      home: HomeScreen(),
+      home: DetailScreen(),
     );
   }
 }

@@ -1,51 +1,109 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:pilem/models/movie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class DetailScreen extends StatelessWidget {
+class DetailScreen extends StatefulWidget {
   final Movie movie;
   const DetailScreen({super.key, required this.movie});
+
+  @override
+  State<DetailScreen> createState() => _DetailScreenState();
+}
+
+class _DetailScreenState extends State<DetailScreen> {
+bool _isFavorite = false;
+  @override
+  void iniState() {
+    // TODO: implement iniState
+    super.initState();
+    _checkIsFavorite();
+  }
+
+  Future<void> _checkIsFavorite() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isFavorite = prefs.containsKey('movie_${widget.movie.id}');
+    });
+  }
+
+  Future<void> _toogleFavorite() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isFavorite = !_isFavorite;
+    });
+    if(_isFavorite) {
+      final String movieJson = jsonEncode(widget.movie.toJson());
+      prefs.setString('movie_${widget.movie.id}',movieJson);
+
+      List<String> favoriteMovieIds = prefs.getStringList('favoriteMovies') ?? [];
+      favoriteMovieIds.add(widget.movie.id.toString());
+      prefs.setStringList('favoriteMovies', favoriteMovieIds);
+    } else {
+      prefs.remove('movie_${widget.movie.id}');
+
+      List<String> favoriteMovieIds = prefs.getStringList('favoriteMovies') ?? [];
+      favoriteMovieIds.remove(widget.movie.id.toString());
+      prefs.setStringList('favoriteMovies', favoriteMovieIds);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(movie.title),
+        title: Text(widget.movie.title),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Image.network('https://image.tmdb.org/t/p/w500${movie.backdropPath}',
-            height: 300,
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
-          SizedBox(height: 20),
-          Text('Overview', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
-          SizedBox(height: 10),
-          Text(movie.overview),
-          SizedBox(height: 20),
-          Row(
+          Stack(
             children: [
-              Icon(Icons.calendar_month,color: Colors.green,
+              Image.network('https://image.tmdb.org/t/p/w500${widget.movie.backdropPath}',
+                height: 300,
+                width: double.infinity,
+                fit: BoxFit.cover,
               ),
-              SizedBox(width: 10),
-              Text('Release Date : ',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              Positioned(
+                bottom: 8,
+                right: 8,
+                child: IconButton(
+                  onPressed: _toogleFavorite,
+                  icon: Icon(
+                    _isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: Colors.red,
+                  ),
+                ),
               ),
-              Text(movie.releaseDate),
-            ],
-          ),
-          Row(
-            children: [
-              Icon(
-                Icons.star,
-                color: Colors.amber,
+              const SizedBox(height: 20),
+              Text('Overview', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+              SizedBox(height: 10),
+              Text(widget.movie.overview),
+              SizedBox(height: 20),
+              Row(
+                children: [
+                  Icon(Icons.calendar_month,color: Colors.green,
+                  ),
+                  SizedBox(width: 10),
+                  Text('Release Date : ',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                  Text(widget.movie.releaseDate),
+                ],
               ),
-              SizedBox(width: 10),
-              Text('Rating : ',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  Icon(
+                    Icons.star,
+                    color: Colors.amber,
+                  ),
+                  SizedBox(width: 10),
+                  Text('Rating : ',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                  Text(widget.movie.voteAverage.toString()),
+                ],
               ),
-              Text(movie.voteAverage.toString()),
             ],
           ),
         ],
